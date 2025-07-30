@@ -3,6 +3,7 @@ import { Ubuntu } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import {Providers} from "@/app/providers";
+import {Toaster} from "@/components/ui/sonner";
 
 const ubuntu = Ubuntu({
     variable: '--font-ubuntu',
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body
         className={`${ubuntu.className} antialiased`}
       >
-      <Providers>{children}</Providers>
+      <Providers>{children}
+          <Toaster position="top-right" richColors />
+      </Providers>
       </body>
     </html>
   );

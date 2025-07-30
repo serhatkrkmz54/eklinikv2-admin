@@ -8,8 +8,33 @@ export interface UserResponse {
     firstName: string;
     lastName: string;
     phoneNumber: string;
-    role: string;
+    role: "ROLE_PATIENT" | "ROLE_DOCTOR" | "ROLE_ADMIN";
     createdAt: string;
+    patientProfile: PatientProfileResponse | null;
+}
+
+interface PatientProfileResponse {
+    dateOfBirth: string; // LocalDate -> string
+    weight: number;
+    height: number;
+    hasChronicIllness: boolean;
+    isMedicationDependent: boolean;
+    birthPlaceCity: string;
+    birthPlaceDistrict: string;
+    address: string;
+    country: string;
+}
+
+export interface ClinicResponse {
+    id: number;
+    name: string;
+}
+
+export interface DoctorResponse {
+    doctorId: number;
+    title: string;
+    user: UserResponse;
+    clinic: ClinicResponse;
 }
 
 export function useUserProfile() {
