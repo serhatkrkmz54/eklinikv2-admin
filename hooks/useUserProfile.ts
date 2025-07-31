@@ -10,10 +10,11 @@ export interface UserResponse {
     phoneNumber: string;
     role: "ROLE_PATIENT" | "ROLE_DOCTOR" | "ROLE_ADMIN";
     createdAt: string;
+    deleted: boolean;
     patientProfile: PatientProfileResponse | null;
 }
 
-interface PatientProfileResponse {
+export interface PatientProfileResponse {
     dateOfBirth: string; // LocalDate -> string
     weight: number;
     height: number;
@@ -35,6 +36,26 @@ export interface DoctorResponse {
     title: string;
     user: UserResponse;
     clinic: ClinicResponse;
+}
+
+export interface UpdateUserRequest {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    role?: "ROLE_PATIENT" | "ROLE_DOCTOR" | "ROLE_ADMIN";
+}
+
+export interface PatientProfileRequest {
+    dateOfBirth?: string | null;
+    weight?: number | null;
+    height?: number | null;
+    hasChronicIllness?: boolean;
+    isMedicationDependent?: boolean;
+    birthPlaceCity?: string | null;
+    birthPlaceDistrict?: string | null;
+    address?: string | null;
+    country?: string | null;
 }
 
 export function useUserProfile() {

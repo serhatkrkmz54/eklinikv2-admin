@@ -1,31 +1,32 @@
 'use client';
 
-import { useUserById } from '@/hooks/useUserService';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader } from '@/components/mycomp/layout/loader';
-import { Badge } from '@/components/ui/badge';
+import {useDoctorById, useUserById} from '@/hooks/useUserService';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Loader} from '@/components/mycomp/layout/loader';
+import {Badge} from '@/components/ui/badge';
 import {
-    User,
+    Activity,
+    Briefcase,
+    Calendar,
+    Fingerprint,
+    HeartPulse,
     Mail,
     Phone,
-    Fingerprint,
-    Calendar,
+    Pill,
+    Scale,
     ShieldCheck,
     Stethoscope,
-    HeartPulse,
-    Scale,
-    Activity,
-    MapPin,
-    Globe,
-    Pill,
-    Building
+    User
 } from 'lucide-react';
 import React from 'react';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import {Separator} from '@/components/ui/separator';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
+import {cva} from "class-variance-authority";
+import {cn} from "@/lib/utils";
 
+// --- Tipler ---
+// Bu tiplerin merkezi bir dosyadan (örn: hooks/useUserProfile.ts) import edilmesi en iyi pratiktir.
 interface PatientProfileResponse {
     dateOfBirth: string | null;
     weight: number | null;
@@ -38,6 +39,11 @@ interface PatientProfileResponse {
     country: string | null;
 }
 
+interface ClinicResponse {
+    id: number;
+    name: string;
+}
+
 interface UserResponse {
     id: number;
     nationalId: string;
@@ -47,8 +53,17 @@ interface UserResponse {
     phoneNumber: string;
     role: "ROLE_PATIENT" | "ROLE_DOCTOR" | "ROLE_ADMIN";
     createdAt: string;
+    deleted: boolean;
     patientProfile: PatientProfileResponse | null;
 }
+
+interface DoctorResponse {
+    doctorId: number;
+    title: string;
+    user: UserResponse;
+    clinic: ClinicResponse;
+}
+
 
 const roleConfig: { [key: string]: { label: string; icon: React.ElementType; className: string; } } = {
     ROLE_ADMIN: { label: "Admin", icon: ShieldCheck, className: "text-red-600 dark:text-red-400" },
@@ -61,7 +76,28 @@ interface UserDetailDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const DetailItem = ({ icon: Icon, label, value, unit = '' }: { icon: React.ElementType; label: string; value?: string | number | null | boolean; unit?: string; }) => {
+const detailValueVariants = cva(
+    "font-semibold text-foreground break-all",
+    {
+        variants: {
+            variant: {
+                default: "text-foreground",
+                destructive: "text-destructive font-bold",
+            },
+        },
+        defaultVariants: {
+            variant: "default",
+        },
+    }
+);
+
+const DetailItem = ({ icon: Icon, label, value, unit = '', variant }: {
+    icon: React.ElementType;
+    label: string;
+    value?: string | number | null | boolean;
+    unit?: string;
+    variant?: "default" | "destructive";
+}) => {
     let displayValue: React.ReactNode = <span className="text-sm text-muted-foreground italic">Belirtilmemiş</span>;
 
     if (typeof value === 'boolean') {
@@ -74,62 +110,62 @@ const DetailItem = ({ icon: Icon, label, value, unit = '' }: { icon: React.Eleme
         <div className="flex items-center gap-3 text-sm">
             <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="text-muted-foreground min-w-[120px]">{label}:</span>
-            <span className="font-semibold text-foreground break-all">{displayValue}</span>
+            <span className={cn(detailValueVariants({ variant }))}>{displayValue}</span>
         </div>
     );
 };
 
-const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="text-md font-semibold text-foreground mb-4">{children}</h3>
-);
-
 export function UserDetailDialog({ userId, onOpenChange }: UserDetailDialogProps) {
-    // Düzeltme: UserResponse tipini hook'a belirtiyoruz.
-    const { data: user, isLoading, error } = useUserById(userId);
+    // 1. Temel kullanıcı bilgileri her zaman çekilir.
+    const { data: user, isLoading: isUserLoading, error: userError } = useUserById(userId);
+
+    // 2. Sadece rol "DOKTOR" ise bu hook tetiklenir.
+    const { data: doctorProfile, isLoading: isDoctorLoading, error: doctorError } = useDoctorById(userId, user?.role || null);
+
+    // Genel yüklenme durumu, her iki sorgu da bitene kadar true olur.
+    const isLoading = isUserLoading || (user?.role === 'ROLE_DOCTOR' && isDoctorLoading);
+    const error = userError || doctorError;
+
     const getRoleDetails = (role: string) => roleConfig[role] || { label: role, icon: User, className: "text-muted-foreground" };
 
     return (
         <Dialog open={!!userId} onOpenChange={onOpenChange}>
-            {/* DEĞİŞİKLİK 1: Dialog genişliği artırıldı */}
             <DialogContent className="sm:max-w-4xl p-0">
                 <VisuallyHidden asChild>
                     <DialogHeader>
-                        <DialogTitle>
-                            {user ? `${user.firstName} ${user.lastName} Kullanıcı Detayları` : "Kullanıcı Detayı Yükleniyor"}
-                        </DialogTitle>
-                        <DialogDescription>
-                            Kullanıcının kişisel, tıbbi ve adres bilgileri.
-                        </DialogDescription>
+                        <DialogTitle>{user ? `${user.firstName} ${user.lastName} Kullanıcı Detayları` : "Kullanıcı Detayı"}</DialogTitle>
+                        <DialogDescription>Kullanıcının detaylı bilgileri.</DialogDescription>
                     </DialogHeader>
                 </VisuallyHidden>
 
                 {isLoading && <div className="h-[500px] flex items-center justify-center"><Loader text="Kullanıcı Bilgileri Yükleniyor..." /></div>}
-                {error && <div className="h-[500px] flex items-center justify-center text-red-500">Kullanıcı bilgileri yüklenemedi.</div>}
+                {error && <div className="h-[500px] flex items-center justify-center text-red-500">Hata: {error.message}</div>}
 
                 {user && (
-                    // DEĞİŞİKLİK 2: Kapatma butonu için üst padding eklendi
-                    <div className="flex flex-col md:flex-row pt-4 md:pt-0">
+                    <div className="flex flex-col md:flex-row">
                         {/* SOL BİLGİ KARTI */}
                         <aside className="w-full md:w-1/3 bg-muted/50 p-6 border-b md:border-r md:border-b-0 flex flex-col items-center text-center">
                             {React.createElement(getRoleDetails(user.role).icon, { className: `h-20 w-20 mb-4 ${getRoleDetails(user.role).className}` })}
+                            {/* Doktor unvanını göster */}
+                            {doctorProfile && <p className="font-semibold text-primary">{doctorProfile.title}</p>}
                             <h2 className="text-xl font-bold text-foreground">{user.firstName} {user.lastName}</h2>
                             <p className="text-muted-foreground text-sm">{getRoleDetails(user.role).label}</p>
-                            <Badge variant="outline" className="mt-4">Aktif</Badge>
+                            <Badge
+                                variant="outline"
+                                className={cn(
+                                    "mt-4",
+                                    user.deleted
+                                        ? "text-destructive border-destructive/30 bg-destructive/10"
+                                        : "text-green-600 border-green-200 bg-green-50 dark:text-green-400 dark:border-green-700 dark:bg-green-900/20"
+                                )}
+                            >
+                                {user.deleted ? "Pasif" : "Aktif"}
+                            </Badge>
                             <Separator className="my-6" />
                             <div className="space-y-4 text-left w-full text-sm">
-                                <div className="flex items-center gap-3">
-                                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    {/* DEĞİŞİKLİK 3: Uzun e-posta adreslerinin taşmasını engellemek için `break-all` eklendi */}
-                                    <span className="text-foreground break-all">{user.email}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="text-foreground">{user.phoneNumber}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="text-foreground">{new Date(user.createdAt).toLocaleDateString('tr-TR')}</span>
-                                </div>
+                                <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-foreground break-all">{user.email}</span></div>
+                                <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-foreground">{user.phoneNumber}</span></div>
+                                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-foreground">{new Date(user.createdAt).toLocaleDateString('tr-TR')}</span></div>
                             </div>
                         </aside>
 
@@ -139,37 +175,39 @@ export function UserDetailDialog({ userId, onOpenChange }: UserDetailDialogProps
                                 <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Fingerprint className="h-5 w-5"/>Kimlik Bilgileri</CardTitle></CardHeader>
                                 <CardContent className="space-y-3">
                                     <DetailItem icon={User} label="T.C. Kimlik No" value={user.nationalId} />
-                                    {user.patientProfile && (
-                                        <>
-                                            <DetailItem icon={Calendar} label="Doğum Tarihi" value={user.patientProfile.dateOfBirth ? new Date(user.patientProfile.dateOfBirth).toLocaleDateString('tr-TR') : null} />
-                                            <DetailItem
-                                                icon={MapPin}
-                                                label="Doğum Yeri"
-                                                value={[user.patientProfile.birthPlaceCity, user.patientProfile.birthPlaceDistrict].filter(Boolean).join(' / ')}
-                                            />
-                                        </>
-                                    )}
+                                    {user.patientProfile && (<DetailItem icon={Calendar} label="Doğum Tarihi" value={user.patientProfile.dateOfBirth ? new Date(user.patientProfile.dateOfBirth).toLocaleDateString('tr-TR') : null} />)}
                                 </CardContent>
                             </Card>
 
+                            {/* YENİ: DOKTOR PROFİLİ KARTI */}
+                            {user.role === 'ROLE_DOCTOR' && doctorProfile && (
+                                <Card>
+                                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Stethoscope className="h-5 w-5"/>Doktor Profili</CardTitle></CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <DetailItem icon={Briefcase} label="Klinik" value={doctorProfile.clinic.name} />
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* HASTA PROFİLİ KARTI */}
                             {user.role === 'ROLE_PATIENT' && user.patientProfile && (
                                 <Card>
                                     <CardHeader><CardTitle className="text-lg flex items-center gap-2"><HeartPulse className="h-5 w-5"/>Tıbbi Profil</CardTitle></CardHeader>
                                     <CardContent className="space-y-3">
                                         <DetailItem icon={Scale} label="Kilo" value={user.patientProfile.weight} unit=" kg" />
                                         <DetailItem icon={Activity} label="Boy" value={user.patientProfile.height} unit=" cm" />
-                                        <DetailItem icon={Pill} label="İlaç Bağımlılığı" value={user.patientProfile.isMedicationDependent} />
-                                        <DetailItem icon={HeartPulse} label="Kronik Hastalık" value={user.patientProfile.hasChronicIllness} />
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {user.role === 'ROLE_PATIENT' && user.patientProfile && (
-                                <Card>
-                                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Globe className="h-5 w-5"/>Adres Bilgileri</CardTitle></CardHeader>
-                                    <CardContent className="space-y-3">
-                                        <DetailItem icon={MapPin} label="Adres" value={user.patientProfile.address} />
-                                        <DetailItem icon={Building} label="Ülke" value={user.patientProfile.country} />
+                                        <DetailItem
+                                            icon={Pill}
+                                            label="İlaç Bağımlılığı"
+                                            value={user.patientProfile.isMedicationDependent}
+                                            variant={user.patientProfile.isMedicationDependent ? "destructive" : "default"}
+                                        />
+                                        <DetailItem
+                                            icon={HeartPulse}
+                                            label="Kronik Hastalık"
+                                            value={user.patientProfile.hasChronicIllness}
+                                            variant={user.patientProfile.hasChronicIllness ? "destructive" : "default"}
+                                        />
                                     </CardContent>
                                 </Card>
                             )}
