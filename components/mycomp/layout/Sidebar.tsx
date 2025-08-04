@@ -9,6 +9,7 @@ import {
     CalendarDays,
     Settings,
     UserCog, ChevronDown,
+    Hospital,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, {useState} from "react";
@@ -43,8 +44,8 @@ const menuItems: MenuItem[] = [
     {
         group: "YÖNETİM",
         items: [
-            { href: "/admin/patients", label: "Hastalar", icon: Users },
-            { href: "/admin/doctors", label: "Doktorlar", icon: Stethoscope },
+            { href: "/admin/clinics", label: "Klinik Yönetimi", icon: Hospital },
+            // { href: "/admin/doctors", label: "Doktorlar", icon: Stethoscope },
             {
                 href: "/admin/users",
                 label: "Kullanıcılar",

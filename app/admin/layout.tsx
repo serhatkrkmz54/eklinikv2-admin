@@ -28,7 +28,7 @@ export default function AdminLayout({
                     <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                         <Sidebar />
                     </aside>
-                    <main className="flex-1 p-6 overflow-y-auto">
+                    <main className="flex-1 overflow-y-auto">
                         {children}
                     </main>
                 </div>
@@ -38,7 +38,7 @@ export default function AdminLayout({
 
     // Mobil Görünümü
     return (
-        <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 p-6">
             <Navbar
                 mobileMenuButton={
                     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

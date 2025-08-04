@@ -62,3 +62,63 @@ export const useClinics = () => {
         queryFn: getClinics,
     });
 };
+
+const updateClinic = async ({ id, clinicData }: { id: number, clinicData: ClinicRequest }): Promise<ClinicResponse> => {
+    const { data } = await apiClient.put<ClinicResponse>(`/api/admin/update-clinics/clinics/${id}`, clinicData);
+    return data;
+};
+
+/**
+ * Bir kliniği siler.
+ */
+const deleteClinic = async (id: number): Promise<string> => {
+    const { data } = await apiClient.delete<string>(`/api/admin/clinics/${id}`);
+    return data;
+};
+
+
+// --- REACT QUERY HOOK'LARI ---
+
+// ... useCreateClinic ve useClinics hook'ları aynı ...
+
+/**
+ * Klinik güncelleme işlemini yönetmek için mutation hook'u.
+ */
+export const useUpdateClinic = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: updateClinic,
+        onSuccess: (updatedClinic) => {
+            toast.success("Klinik Güncellendi!", {
+                description: `'${updatedClinic.name}' olarak başarıyla güncellendi.`,
+            });
+            queryClient.invalidateQueries({ queryKey: ['clinics'] });
+        },
+        onError: (error: any) => {
+            toast.error("Güncelleme Başarısız!", {
+                description: error.response?.data?.message || "Klinik güncellenirken bir hata oluştu.",
+            });
+        },
+    });
+};
+
+/**
+ * Klinik silme işlemini yönetmek için mutation hook'u.
+ */
+export const useDeleteClinic = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteClinic,
+        onSuccess: (message) => {
+            toast.success("Klinik Silindi!", {
+                description: message,
+            });
+            queryClient.invalidateQueries({ queryKey: ['clinics'] });
+        },
+        onError: (error: any) => {
+            toast.error("Silme İşlemi Başarısız!", {
+                description: error.response?.data?.message || "Klinik silinirken bir hata oluştu.",
+            });
+        },
+    });
+};

@@ -108,12 +108,16 @@ export const useDeleteUser = () => {
 
     return useMutation({
         mutationFn: deleteUser,
-        onSuccess: (data) => {
+        onSuccess: (data, userId) => { // 'userId' parametresini de alabiliriz
             toast.success("İşlem Başarılı!", {
                 description: data,
             });
 
+            // 1. Ana kullanıcı listesini yenile (Bu zaten vardı)
             queryClient.invalidateQueries({ queryKey: ['users'] });
+
+            // 2. DEĞİŞİKLİK: Silinen kullanıcının detay önbelleğini de temizle
+            queryClient.invalidateQueries({ queryKey: ['user', userId] });
         },
         onError: (error: any) => {
             toast.error("İşlem Başarısız!", {
@@ -140,8 +144,13 @@ export const useReactivateUser = () => {
             toast.success("İşlem Başarılı!", {
                 description: `Kullanıcı '${data.firstName} ${data.lastName}' başarıyla aktif edildi.`,
             });
-            // Tablonun otomatik olarak güncellenmesini sağlıyoruz.
+
+            // 1. Ana kullanıcı listesini yenile (Bu zaten vardı)
             queryClient.invalidateQueries({ queryKey: ['users'] });
+
+            // 2. DEĞİŞİKLİK VE KRİTİK ADIM: Detayları gösterilen kullanıcının önbelleğini de temizle
+            // Böylece kullanıcı detaylarına tıklandığında en güncel bilgi gelir.
+            queryClient.invalidateQueries({ queryKey: ['user', data.id] });
         },
         onError: (error: any) => {
             toast.error("İşlem Başarısız!", {
