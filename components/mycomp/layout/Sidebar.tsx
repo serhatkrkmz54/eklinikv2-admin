@@ -32,7 +32,6 @@ type MenuItem = {
     items: SubMenuItem[];
 };
 
-// "Kullanıcılar" öğesine alt menü ekliyoruz
 const menuItems: MenuItem[] = [
     {
         group: "KONTROL PANELİ",
@@ -45,7 +44,7 @@ const menuItems: MenuItem[] = [
         group: "YÖNETİM",
         items: [
             { href: "/admin/clinics", label: "Klinik Yönetimi", icon: Hospital },
-            // { href: "/admin/doctors", label: "Doktorlar", icon: Stethoscope },
+             { href: "/admin/doctors", label: "Doktor Yönetimi", icon: Stethoscope },
             {
                 href: "/admin/users",
                 label: "Kullanıcılar",

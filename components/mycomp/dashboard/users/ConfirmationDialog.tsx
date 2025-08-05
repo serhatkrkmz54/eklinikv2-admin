@@ -34,7 +34,7 @@ export function ConfirmationDialog({ isOpen, onClose, onConfirm, title, descript
                     </AlertDialogCancel>
                     <AlertDialogAction asChild>
                         <Button variant="destructive" onClick={() => { onConfirm(); onClose(); }}>
-                            Onayla ve Sil
+                            Onayla
                         </Button>
                     </AlertDialogAction>
                 </AlertDialogFooter>

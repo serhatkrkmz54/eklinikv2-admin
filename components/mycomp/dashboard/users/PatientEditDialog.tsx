@@ -4,14 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Resolver } from "react-hook-form";
 import { z } from "zod";
 import React, { useEffect } from "react";
-import { format } from "date-fns"; // Tarih formatlamak için
-import { tr } from 'date-fns/locale'; // Takvim için Türkçe dil desteği
+import { format } from "date-fns";
+import { tr } from 'date-fns/locale';
 
 import { useUserById, useUpdatePatientProfile } from "@/hooks/useUserService";
 import { PatientProfileRequest } from "@/hooks/useUserProfile";
-import { cn } from "@/lib/utils"; // shadcn/ui'nin yardımcı fonksiyonu
+import { cn } from "@/lib/utils";
 
-// shadcn/ui Bileşenleri
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -20,11 +19,9 @@ import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-// Diğer Bileşenler ve İkonlar
 import { Loader } from "@/components/mycomp/layout/loader";
 import { Loader2, ClipboardEdit, CalendarIcon, MapPin, Weight, Ruler, HeartPulse, Pill } from "lucide-react";
 
-// Zod şeması aynı kalabilir, dateOfBirth hala bir string.
 const patientEditSchema = z.object({
     dateOfBirth: z.string().nullable().optional(),
     weight: z.preprocess(
@@ -38,6 +35,8 @@ const patientEditSchema = z.object({
     birthPlaceCity: z.string().nullable().optional(),
     hasChronicIllness: z.boolean().optional(),
     isMedicationDependent: z.boolean().optional(),
+    address: z.string().nullable().optional(),
+    country: z.string().nullable().optional(),
 });
 
 type PatientEditFormValues = z.infer<typeof patientEditSchema>;
@@ -53,7 +52,16 @@ export function PatientEditDialog({ userId, onOpenChange }: PatientEditDialogPro
 
     const form = useForm<PatientEditFormValues>({
         resolver: zodResolver(patientEditSchema) as Resolver<PatientEditFormValues>,
-        defaultValues: { /* ... varsayılan değerler aynı ... */ },
+        defaultValues: {
+            dateOfBirth: null,
+            weight: null,
+            height: null,
+            birthPlaceCity: null,
+            hasChronicIllness: false,
+            isMedicationDependent: false,
+            address: null,
+            country: null,
+        },
     });
 
     useEffect(() => {
@@ -65,6 +73,8 @@ export function PatientEditDialog({ userId, onOpenChange }: PatientEditDialogPro
                 birthPlaceCity: user.patientProfile.birthPlaceCity ?? null,
                 hasChronicIllness: user.patientProfile.hasChronicIllness ?? false,
                 isMedicationDependent: user.patientProfile.isMedicationDependent ?? false,
+                address: user.patientProfile.address ?? null,
+                country: user.patientProfile.country ?? null,
             });
         }
     }, [user, form]);
@@ -147,7 +157,6 @@ export function PatientEditDialog({ userId, onOpenChange }: PatientEditDialogPro
                                 </div>
                             </div>
 
-                            {/* --- Kart 2: Fiziksel Özellikler --- */}
                             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg border dark:border-slate-700 shadow-sm">
                                 <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">Fiziksel Özellikler</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -168,7 +177,6 @@ export function PatientEditDialog({ userId, onOpenChange }: PatientEditDialogPro
                                 </div>
                             </div>
 
-                            {/* --- Kart 3: Tıbbi Geçmiş --- */}
                             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg border dark:border-slate-700 shadow-sm">
                                 <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">Tıbbi Geçmiş</h3>
                                 <div className="space-y-4">
