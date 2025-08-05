@@ -24,7 +24,7 @@ type SubMenuItem = {
     href: string;
     label: string;
     icon: React.ElementType;
-    subMenu?: GrandchildMenuItem[]; // Alt menüleri tutacak opsiyonel dizi
+    subMenu?: GrandchildMenuItem[];
 };
 
 type MenuItem = {
@@ -37,14 +37,18 @@ const menuItems: MenuItem[] = [
         group: "KONTROL PANELİ",
         items: [
             { href: "/admin", label: "Anasayfa", icon: LayoutDashboard },
-            { href: "/admin/appointments", label: "Randevular", icon: CalendarDays },
+            { href: "/admin/schedules", label: "Randevu Takvim Yönetimi", icon: CalendarDays },
         ]
     },
     {
         group: "YÖNETİM",
         items: [
             { href: "/admin/clinics", label: "Klinik Yönetimi", icon: Hospital },
-             { href: "/admin/doctors", label: "Doktor Yönetimi", icon: Stethoscope },
+             { href: "/admin/doctors", label: "Doktor Yönetimi", icon: Stethoscope,
+             subMenu: [
+                 { href: "/admin/doctors", label: "Doktor Yönetimi"},
+                 { href: "/admin/doctors/create-schedules", label: "Randevu Takvimi Oluştur" },
+             ]},
             {
                 href: "/admin/users",
                 label: "Kullanıcılar",
