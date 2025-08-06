@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { UserPlus, Building, Stethoscope, Search, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-// --- ANA SAYFA BİLEŞENİ (YENİ TASARIM) ---
 export default function DoctorManagementPage() {
     const { data: doctors, isLoading, error } = useDoctors();
     const createMutation = useCreateDoctor();
@@ -55,7 +54,6 @@ export default function DoctorManagementPage() {
     );
 
     return (
-        // GÜNCELLENDİ: Ana sayfa arka planı ve padding
         <main className="p-4 sm:p-6 md:p-8 bg-slate-50 min-h-screen">
             <div className="w-full mx-auto">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -81,7 +79,6 @@ export default function DoctorManagementPage() {
                     </Dialog>
                 </div>
 
-                {/* YENİ: Ana içerik kartı */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200">
                     <div className="p-4 border-b border-slate-200">
                         <div className="relative">

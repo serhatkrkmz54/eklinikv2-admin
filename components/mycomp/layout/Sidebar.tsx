@@ -1,19 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import {
-    LayoutDashboard,
-    Users,
-    Stethoscope,
-    CalendarDays,
-    Settings,
-    UserCog, ChevronDown,
-    Hospital,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {usePathname} from 'next/navigation';
+import {CalendarDays, ChevronDown, Hospital, LayoutDashboard, Settings, Stethoscope, UserCog,} from 'lucide-react';
+import {cn} from '@/lib/utils';
 import React, {useState} from "react";
-import { AnimatePresence, motion } from 'framer-motion';
+import {AnimatePresence, motion} from 'framer-motion';
 
 type GrandchildMenuItem = {
     href: string;

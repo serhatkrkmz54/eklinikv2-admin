@@ -16,25 +16,24 @@ import {
     Stethoscope,
     CalendarDays,
     Building2,
-    BarChart3,
     PieChart
 } from "lucide-react";
-import { useClinicCount,useDoctorCount, usePatientCount  } from "@/hooks/useDashboardStats";
+// YENİ: useDashboardStats yerine useStatisticsService kullanılıyor
+import { useClinicCount, useDoctorCount, usePatientCount } from "@/hooks/useDashboardStats"; // Bunların da yeni servise taşınması idealdir
+import { useDailyAppointmentCount, useMonthlyNewPatientStats } from "@/hooks/useDashboardStats";
+// YENİ: Chart bileşeni import edildi
+import { MonthlyNewPatientsChart } from "@/components/mycomp/dashboard/MonthlyNewPatientsChart";
 
 export default function AdminDashboardPage() {
     const { count: clinicCount, isLoading: isClinicLoading } = useClinicCount();
     const { count: doctorCount, isLoading: isDoctorLoading } = useDoctorCount();
     const { count: patientCount, isLoading: isPatientLoading } = usePatientCount();
-
-    const totalPatients = "1,245";
-    const totalDoctors = "32";
-    const todaysAppointments = "78";
+    const { count: dailyAppointmentCount, isLoading: isDailyAppointmentLoading } = useDailyAppointmentCount();
 
     const upcomingAppointments = [
         { id: 1, patient: "Ayşe Yılmaz", doctor: "Dr. Mehmet Öztürk", time: "14:00", department: "Kardiyoloji" },
         { id: 2, patient: "Fatma Kaya", doctor: "Dr. Elif Güneş", time: "14:15", department: "Nöroloji" },
         { id: 3, patient: "Ahmet Çelik", doctor: "Dr. Caner Yıldız", time: "14:30", department: "Dahiliye" },
-        { id: 4, patient: "Zeynep Arslan", doctor: "Dr. Pınar Aksoy", time: "14:45", department: "Pediatri" },
     ];
 
     return (
@@ -42,40 +41,16 @@ export default function AdminDashboardPage() {
             <h1 className="text-3xl font-bold tracking-tight">Genel Bakış</h1>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <DashboardCard
-                    title="Toplam Hasta"
-                    value={patientCount?.toString() ?? '0'}
-                    description="Sisteme kayıtlı toplam hasta sayısı"
-                    icon={Users}
-                    isLoading={isPatientLoading}
-                />
-                <DashboardCard
-                    title="Toplam Doktor"
-                    value={doctorCount?.toString() ?? '0'}
-                    description="Klinikte görevli doktor sayısı"
-                    icon={Stethoscope}
-                    isLoading={isDoctorLoading}
-                />
-                <DashboardCard
-                    title="Bugünkü Randevular"
-                    value={todaysAppointments}
-                    description="Bugün için planlanan randevular"
-                    icon={CalendarDays}
-                />
-                <DashboardCard
-                    title="Toplam Klinik"
-                    value={clinicCount?.toString() ?? '0'}
-                    description="Sistemdeki poliklinik sayısı"
-                    icon={Building2}
-                    isLoading={isClinicLoading}
-                />
+                <DashboardCard title="Toplam Hasta" value={patientCount?.toString() ?? '0'} description="Sisteme kayıtlı toplam hasta sayısı" icon={Users} isLoading={isPatientLoading} />
+                <DashboardCard title="Toplam Doktor" value={doctorCount?.toString() ?? '0'} description="Klinikte görevli doktor sayısı" icon={Stethoscope} isLoading={isDoctorLoading} />
+                <DashboardCard title="Bugünkü Randevular" value={dailyAppointmentCount?.toString() ?? '0'} description="Bugün için planlanan randevular" icon={CalendarDays} isLoading={isDailyAppointmentLoading} />
+                <DashboardCard title="Toplam Klinik" value={clinicCount?.toString() ?? '0'} description="Sistemdeki poliklinik sayısı" icon={Building2} isLoading={isClinicLoading} />
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-muted-foreground" />Aylık Yeni Hasta Kaydı</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground mb-4">Son 6 ayda sisteme eklenen yeni hasta sayılarının grafiği.</p><Skeleton className="w-full h-[300px]" /></CardContent>
-                </Card>
+                {/* DÜZELTME: Skeleton yerine yeni Chart bileşeni kullanılıyor */}
+                <MonthlyNewPatientsChart />
+
                 <Card>
                     <CardHeader><CardTitle className="flex items-center gap-2"><PieChart className="h-5 w-5 text-muted-foreground" />Bölümlere Göre Randevu Yoğunluğu</CardTitle></CardHeader>
                     <CardContent><p className="text-sm text-muted-foreground mb-4">Bu ayki randevuların polikliniklere göre dağılımı.</p><Skeleton className="w-full h-[300px]" /></CardContent>

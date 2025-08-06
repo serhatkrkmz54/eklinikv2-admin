@@ -2,17 +2,13 @@
 
 import React, { useState } from 'react';
 
-// Hook'lar ve Tipler
 import { useUpdateDoctor, useDeleteDoctor, DoctorResponse, UpdateDoctorRequest } from '@/hooks/useDoctorService';
 import { DoctorForm, DoctorFormValues } from './DoctorForm';
-// YENİ: Detay dialog bileşeni import edildi.
 import { DoctorDetailDialog } from './DoctorDetailDialog';
 
-// UI Bileşenleri
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-// YENİ: Gerekli bileşenler ve ikonlar import edildi.
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Edit, Loader2, Eye } from 'lucide-react';
 
@@ -23,7 +19,6 @@ interface DoctorActionsProps {
 export function DoctorActions({ doctor }: DoctorActionsProps) {
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    // YENİ: Detay penceresinin açık/kapalı durumunu tutan state.
     const [isDetailDialogOpen, setDetailDialogOpen] = useState(false);
 
     const deleteMutation = useDeleteDoctor();
@@ -51,7 +46,6 @@ export function DoctorActions({ doctor }: DoctorActionsProps) {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksiyonlar</DropdownMenuLabel>
 
-                    {/* YENİ: "Detayları Görüntüle" menü elemanı eklendi. */}
                     <DropdownMenuItem onClick={() => setDetailDialogOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
                         <span>Detayları Görüntüle</span>
@@ -62,7 +56,6 @@ export function DoctorActions({ doctor }: DoctorActionsProps) {
                         <span>Düzenle</span>
                     </DropdownMenuItem>
 
-                    {/* YENİ: Menü elemanlarını ayırmak için Separator eklendi. */}
                     <DropdownMenuSeparator />
 
                     <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
@@ -72,13 +65,11 @@ export function DoctorActions({ doctor }: DoctorActionsProps) {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* YENİ: Detay penceresi bileşeni render ediliyor. */}
             <DoctorDetailDialog
                 doctorId={isDetailDialogOpen ? doctor.doctorId : null}
                 onOpenChange={setDetailDialogOpen}
             />
 
-            {/* Düzenleme Dialog (Mevcut kod) */}
             <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -95,7 +86,6 @@ export function DoctorActions({ doctor }: DoctorActionsProps) {
                 </DialogContent>
             </Dialog>
 
-            {/* Silme Onay Dialog (Mevcut kod) */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

@@ -40,15 +40,11 @@ const getUsers = async (page: number, size: number, searchTerm: string, role: st
     if (role && role !== "ALL") {
         params.role = role;
     }
-    // if (status && status !== "ALL") params.status = status;
 
     const { data } = await apiClient.get<Page<UserResponse>>('/api/admin/users', { params });
     return data;
 };
 
-/**
- * Kullanıcıları getirmek için React Query hook'u.
- */
 export const useUsers = (page: number, size: number, searchTerm: string, role: string, status: string) => {
     return useQuery<Page<UserResponse>, Error>({
         queryKey: ['users', page, size, searchTerm, role, status],
@@ -62,10 +58,6 @@ const getUserById = async (userId: number): Promise<UserResponse> => {
     return data;
 };
 
-/**
- * ID'ye göre tek bir kullanıcıyı getirmek için React Query hook'u.
- * Bu hook, sadece bir `userId` verildiğinde çalışır.
- */
 export const useUserById = (userId: number | null) => {
     return useQuery<UserResponse, Error>({
         queryKey: ['user', userId],
@@ -80,9 +72,6 @@ const getDoctorByUserId = async (userId: number): Promise<DoctorResponse> => {
     return data;
 };
 
-/**
- * User ID'ye ve role göre doktor profilini getirmek için React Query hook'u.
- */
 export const useDoctorById = (userId: number | null, role: string | null) => {
     return useQuery<DoctorResponse, Error>({
         queryKey: ['doctor', userId],
@@ -91,32 +80,23 @@ export const useDoctorById = (userId: number | null, role: string | null) => {
     });
 };
 
-/**
- * ID'ye göre bir kullanıcıyı siler (pasif hale getirir).
- * @param userId - Silinecek kullanıcının ID'si
- */
 const deleteUser = async (userId: number): Promise<string> => {
     const { data } = await apiClient.delete(`/api/admin/delete/users/${userId}`);
     return data;
 };
 
-/**
- * Kullanıcı silme işlemini yönetmek için React Query mutation hook'u.
- */
 export const useDeleteUser = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: deleteUser,
-        onSuccess: (data, userId) => { // 'userId' parametresini de alabiliriz
+        onSuccess: (data, userId) => {
             toast.success("İşlem Başarılı!", {
                 description: data,
             });
 
-            // 1. Ana kullanıcı listesini yenile (Bu zaten vardı)
             queryClient.invalidateQueries({ queryKey: ['users'] });
 
-            // 2. DEĞİŞİKLİK: Silinen kullanıcının detay önbelleğini de temizle
             queryClient.invalidateQueries({ queryKey: ['user', userId] });
         },
         onError: (error: any) => {
@@ -132,9 +112,6 @@ const reactivateUser = async (userId: number): Promise<UserResponse> => {
     return data;
 };
 
-/**
- * Kullanıcı aktif etme işlemini yönetmek için React Query mutation hook'u.
- */
 export const useReactivateUser = () => {
     const queryClient = useQueryClient();
 
@@ -145,11 +122,8 @@ export const useReactivateUser = () => {
                 description: `Kullanıcı '${data.firstName} ${data.lastName}' başarıyla aktif edildi.`,
             });
 
-            // 1. Ana kullanıcı listesini yenile (Bu zaten vardı)
             queryClient.invalidateQueries({ queryKey: ['users'] });
 
-            // 2. DEĞİŞİKLİK VE KRİTİK ADIM: Detayları gösterilen kullanıcının önbelleğini de temizle
-            // Böylece kullanıcı detaylarına tıklandığında en güncel bilgi gelir.
             queryClient.invalidateQueries({ queryKey: ['user', data.id] });
         },
         onError: (error: any) => {
@@ -165,9 +139,6 @@ const updateUser = async ({ id, userData }: { id: number, userData: UpdateUserRe
     return data;
 };
 
-/**
- * Kullanıcı güncelleme işlemini yönetmek için React Query mutation hook'u.
- */
 export const useUpdateUser = () => {
     const queryClient = useQueryClient();
 
@@ -177,8 +148,6 @@ export const useUpdateUser = () => {
             toast.success("Kullanıcı Güncellendi!", {
                 description: `${updatedUser.firstName} ${updatedUser.lastName} adlı kullanıcının bilgileri başarıyla güncellendi.`,
             });
-            // Hem kullanıcı listesini ('users') hem de o kullanıcının detayını ('user', id)
-            // geçersiz kılarak verilerin anında yenilenmesini sağlıyoruz.
             queryClient.invalidateQueries({ queryKey: ['users'] });
             queryClient.invalidateQueries({ queryKey: ['user', updatedUser.id] });
         },
@@ -202,7 +171,6 @@ export const useUpdatePatientProfile = () => {
         mutationFn: updatePatientProfile,
         onSuccess: (updatedProfile, variables) => {
             toast.success("Hasta Profili Güncellendi!");
-            // Hem kullanıcı listesini hem de o kullanıcının detayını yenile
             queryClient.invalidateQueries({ queryKey: ['users'] });
             queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
         },

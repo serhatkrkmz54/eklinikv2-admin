@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Control } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -98,8 +98,7 @@ export function UserCreateForm() {
         try {
             const payload = { ...values, phoneNumber: values.phoneNumber.replace(/\s/g, '') };
 
-            const newUser: UserResponse = { ...payload, id: Date.now(), createdAt: new Date().toISOString() };
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const newUser = await createUser(payload);
 
             toast.success("Kullanıcı Başarıyla Oluşturuldu!", {
                 description: `${newUser.firstName} ${newUser.lastName} adlı kullanıcı sisteme eklendi.`,
@@ -175,7 +174,7 @@ export function UserCreateForm() {
                                                             {...field}
                                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 11))}
                                                             error={fieldState.error}
-                                                            showSuccess={field.value.length === 11 && !fieldState.error} // KOŞUL GÜNCELLENDİ
+                                                            showSuccess={field.value.length === 11 && !fieldState.error}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />

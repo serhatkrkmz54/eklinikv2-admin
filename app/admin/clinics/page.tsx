@@ -1,37 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useClinics, useCreateClinic, useDeleteClinic, useUpdateClinic, ClinicRequest, ClinicResponse } from '@/hooks/useClinicService';
-import { motion, AnimatePresence } from 'framer-motion';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, UseFormReturn } from 'react-hook-form';
-import { z } from 'zod';
+import React, {useState} from 'react';
+import {ClinicResponse, useClinics, useCreateClinic, useDeleteClinic} from '@/hooks/useClinicService';
+import {AnimatePresence, motion} from 'framer-motion';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {useForm} from 'react-hook-form';
+import {z} from 'zod';
 import Link from 'next/link';
 
-// UI Bileşenleri
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Loader } from "@/components/mycomp/layout/loader";
-import { ClinicEditDialog } from '@/components/mycomp/dashboard/clinics/ClinicEditDialog';
-import { ConfirmationDialog } from '@/components/mycomp/dashboard/users/ConfirmationDialog';
-import { MoreHorizontal, Trash2, Pencil, Hospital, Info, ArrowRight, Stethoscope, PlusCircle, Loader2 } from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
+import {Badge} from '@/components/ui/badge';
+import {Loader} from "@/components/mycomp/layout/loader";
+import {ClinicEditDialog} from '@/components/mycomp/dashboard/clinics/ClinicEditDialog';
+import {ConfirmationDialog} from '@/components/mycomp/dashboard/users/ConfirmationDialog';
+import {ArrowRight, Hospital, Loader2, MoreHorizontal, Pencil, PlusCircle, Stethoscope, Trash2} from 'lucide-react';
 
-// --- Form Şeması ---
 const formSchema = z.object({
     name: z.string().min(2, { message: "Klinik adı en az 2 karakter olmalıdır." }),
 });
 type FormValues = z.infer<typeof formSchema>;
 
-
-// --- YARDIMCI BİLEŞENLER ---
-
-// 1. Yeni Klinik Oluşturma Formu
 const CreateClinicForm = () => {
     const createClinicMutation = useCreateClinic();
     const form = useForm<FormValues>({
@@ -88,7 +81,6 @@ const CreateClinicForm = () => {
     );
 };
 
-// 2. Sonraki Adım Rehberi
 const NextStepGuide = () => (
     <Card>
         <CardHeader>
@@ -105,8 +97,6 @@ const NextStepGuide = () => (
     </Card>
 );
 
-
-// --- ANA SAYFA BİLEŞENİ ---
 export default function ClinicsPage() {
     const { data: clinics, isLoading, error } = useClinics();
     const deleteClinicMutation = useDeleteClinic();
@@ -134,7 +124,6 @@ export default function ClinicsPage() {
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    {/* Ana İçerik: Klinik Listesi */}
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader>
@@ -183,7 +172,6 @@ export default function ClinicsPage() {
                         </Card>
                     </div>
 
-                    {/* Yardımcı Panel: Form ve Rehber */}
                     <div className="lg:col-span-1 space-y-8">
                         <CreateClinicForm />
                         <NextStepGuide />

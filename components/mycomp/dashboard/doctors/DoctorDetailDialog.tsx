@@ -1,16 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useDoctorById } from '@/hooks/useDoctorService';
-import { DoctorResponse as OriginalDoctorResponse } from '@/hooks/useDoctorService';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge'; // YENİ: Unvan için Badge eklendi
-import { Stethoscope, Building, Mail, Phone, Fingerprint, Calendar, ShieldCheck } from 'lucide-react';
+import {DoctorResponse as OriginalDoctorResponse, useDoctorById} from '@/hooks/useDoctorService';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {VisuallyHidden} from '@radix-ui/react-visually-hidden';
+import {Avatar, AvatarFallback} from '@/components/ui/avatar';
+import {Skeleton} from '@/components/ui/skeleton';
+import {Badge} from '@/components/ui/badge';
+import {Building, Calendar, Fingerprint, Mail, Phone, ShieldCheck} from 'lucide-react';
 
-// --- Tipler (Değişiklik yok) ---
 interface UserResponse {
     id: number;
     nationalId: string;
@@ -39,7 +37,6 @@ const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label:
 
 const DetailSkeleton = () => (
     <div className="w-full">
-        {/* Skeleton - Başlık Alanı */}
         <div className="flex flex-col items-center gap-4 p-6 text-center bg-muted/50 border-b">
             <Skeleton className="h-24 w-24 rounded-full" />
             <div className="space-y-2">
@@ -48,7 +45,6 @@ const DetailSkeleton = () => (
                 <Skeleton className="h-5 w-40 mx-auto" />
             </div>
         </div>
-        {/* Skeleton - İçerik Alanı */}
         <div className="p-6 space-y-6">
             <div className="space-y-4">
                 <Skeleton className="h-5 w-32" />
@@ -69,8 +65,6 @@ const DetailSkeleton = () => (
     </div>
 );
 
-
-// --- ANA DIALOG BİLEŞENİ (YENİ TASARIM) ---
 interface DoctorDetailDialogProps {
     doctorId: number | null;
     onOpenChange: (open: boolean) => void;
@@ -110,7 +104,6 @@ export function DoctorDetailDialog({ doctorId, onOpenChange }: DoctorDetailDialo
                     </div>
                 ) : doctor ? (
                     <div className="w-full">
-                        {/* YENİ: Etkileyici Başlık Alanı */}
                         <div className="flex flex-col items-center gap-2 p-6 text-center bg-muted/50 border-b">
                             <Avatar className="h-24 w-24 mb-2 border-4 border-background">
                                 <AvatarFallback className="text-4xl font-semibold bg-sky-100 text-sky-700">
@@ -127,9 +120,7 @@ export function DoctorDetailDialog({ doctorId, onOpenChange }: DoctorDetailDialo
                             </p>
                         </div>
 
-                        {/* YENİ: Gruplandırılmış İçerik Alanı */}
                         <div className="p-6 space-y-6">
-                            {/* Grup 1: İletişim Bilgileri */}
                             <div className="space-y-4">
                                 <h3 className="text-base font-semibold text-foreground">İletişim Bilgileri</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -138,10 +129,8 @@ export function DoctorDetailDialog({ doctorId, onOpenChange }: DoctorDetailDialo
                                 </div>
                             </div>
 
-                            {/* Ayırıcı */}
                             <hr />
 
-                            {/* Grup 2: Sistem Bilgileri */}
                             <div className="space-y-4">
                                 <h3 className="text-base font-semibold text-foreground">Sistem Bilgileri</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
