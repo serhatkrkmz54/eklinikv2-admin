@@ -10,6 +10,19 @@ export interface MonthlyNewPatientData {
     count: number;
 }
 
+export interface ClinicAppointmentCountDataResponse {
+    clinicName: string;
+    appointmentCount: number;
+}
+
+export interface UpcomingAppointment {
+    appointmentId: number;
+    patientFullName: string;
+    doctorFullName: string;
+    clinicName: string;
+    appointmentTime: string;
+}
+
 export function useClinicCount() {
     const { data, error, isLoading } = useSWR<CountResponse>('/api/admin/clinic-count', fetcher);
 
@@ -56,6 +69,33 @@ export function useMonthlyNewPatientStats() {
 
     return {
         chartData: data,
+        isLoading,
+        error,
+    };
+}
+
+export function useClinicAppointmentDensity() {
+    const { data, error, isLoading } = useSWR<ClinicAppointmentCountDataResponse[]>(
+        '/api/admin/clinic-appointment-density',
+        fetcher
+    );
+
+    return {
+        densityData: data,
+        isLoading,
+        error,
+    };
+}
+
+export function useUpcomingAppointments() {
+    const { data, error, isLoading } = useSWR<UpcomingAppointment[]>(
+        '/api/admin/upcoming-appointments',
+        fetcher,
+        { refreshInterval: 60000 }
+    );
+
+    return {
+        upcomingAppointments: data,
         isLoading,
         error,
     };

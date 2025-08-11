@@ -18,23 +18,19 @@ import {
     Building2,
     PieChart
 } from "lucide-react";
-// YENİ: useDashboardStats yerine useStatisticsService kullanılıyor
-import { useClinicCount, useDoctorCount, usePatientCount } from "@/hooks/useDashboardStats"; // Bunların da yeni servise taşınması idealdir
+import { useClinicCount, useDoctorCount, usePatientCount, useUpcomingAppointments } from "@/hooks/useDashboardStats";
 import { useDailyAppointmentCount, useMonthlyNewPatientStats } from "@/hooks/useDashboardStats";
-// YENİ: Chart bileşeni import edildi
 import { MonthlyNewPatientsChart } from "@/components/mycomp/dashboard/MonthlyNewPatientsChart";
+import {ClinicDensityChart} from "@/components/mycomp/dashboard/ClinicDensityChart";
+import { format, parseISO } from 'date-fns';
 
 export default function AdminDashboardPage() {
     const { count: clinicCount, isLoading: isClinicLoading } = useClinicCount();
     const { count: doctorCount, isLoading: isDoctorLoading } = useDoctorCount();
     const { count: patientCount, isLoading: isPatientLoading } = usePatientCount();
     const { count: dailyAppointmentCount, isLoading: isDailyAppointmentLoading } = useDailyAppointmentCount();
+    const { upcomingAppointments, isLoading: isUpcomingLoading } = useUpcomingAppointments();
 
-    const upcomingAppointments = [
-        { id: 1, patient: "Ayşe Yılmaz", doctor: "Dr. Mehmet Öztürk", time: "14:00", department: "Kardiyoloji" },
-        { id: 2, patient: "Fatma Kaya", doctor: "Dr. Elif Güneş", time: "14:15", department: "Nöroloji" },
-        { id: 3, patient: "Ahmet Çelik", doctor: "Dr. Caner Yıldız", time: "14:30", department: "Dahiliye" },
-    ];
 
     return (
         <div className="space-y-6 p-6">
@@ -48,23 +44,52 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* DÜZELTME: Skeleton yerine yeni Chart bileşeni kullanılıyor */}
                 <MonthlyNewPatientsChart />
-
-                <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><PieChart className="h-5 w-5 text-muted-foreground" />Bölümlere Göre Randevu Yoğunluğu</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground mb-4">Bu ayki randevuların polikliniklere göre dağılımı.</p><Skeleton className="w-full h-[300px]" /></CardContent>
-                </Card>
+                <ClinicDensityChart />
             </div>
 
             <Card>
                 <CardHeader><CardTitle>Yaklaşan Randevular</CardTitle></CardHeader>
                 <CardContent>
-                    <Table><TableHeader><TableRow><TableHead>Hasta</TableHead><TableHead>Doktor</TableHead><TableHead>Bölüm</TableHead><TableHead className="text-right">Saat</TableHead></TableRow></TableHeader>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Hasta</TableHead>
+                                <TableHead>Doktor</TableHead>
+                                <TableHead>Bölüm</TableHead>
+                                <TableHead className="text-right">Saat</TableHead>
+                            </TableRow>
+                        </TableHeader>
                         <TableBody>
-                            {upcomingAppointments.map((apt) => (
-                                <TableRow key={apt.id}><TableCell className="font-medium">{apt.patient}</TableCell><TableCell>{apt.doctor}</TableCell><TableCell>{apt.department}</TableCell><TableCell className="text-right">{apt.time}</TableCell></TableRow>
-                            ))}
+                            {isUpcomingLoading ? (
+                                // Yüklenirken gösterilecek iskelet yapısı
+                                [...Array(4)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : upcomingAppointments && upcomingAppointments.length > 0 ? (
+                                // Veri geldiğinde gösterilecek satırlar
+                                upcomingAppointments.map((apt) => (
+                                    <TableRow key={apt.appointmentId}>
+                                        <TableCell className="font-medium">{apt.patientFullName}</TableCell>
+                                        <TableCell>{apt.doctorFullName}</TableCell>
+                                        <TableCell>{apt.clinicName}</TableCell>
+                                        <TableCell className="text-right font-mono">
+                                            {format(parseISO(apt.appointmentTime), 'HH:mm')}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        Yaklaşan randevu bulunmamaktadır.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

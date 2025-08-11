@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import {CalendarDays, ChevronDown, Hospital, LayoutDashboard, Settings, Stethoscope, UserCog,} from 'lucide-react';
-import {cn} from '@/lib/utils';
-import React, {useState} from "react";
-import {AnimatePresence, motion} from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { CalendarDays, ChevronDown, Hospital, LayoutDashboard, Settings, Stethoscope, UserCog, Siren } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { AnimatePresence, motion } from 'framer-motion';
 
 type GrandchildMenuItem = {
     href: string;
@@ -16,6 +16,7 @@ type SubMenuItem = {
     href: string;
     label: string;
     icon: React.ElementType;
+    isEmergency?: boolean;
     subMenu?: GrandchildMenuItem[];
 };
 
@@ -29,6 +30,7 @@ const menuItems: MenuItem[] = [
         group: "KONTROL PANELİ",
         items: [
             { href: "/admin", label: "Anasayfa", icon: LayoutDashboard },
+            { href: "/admin/emergency-logs", label: "Acil Durum Kayıtları", icon: Siren, isEmergency: true },
             { href: "/admin/schedules", label: "Randevu Takvim Yönetimi", icon: CalendarDays },
         ]
     },
@@ -36,11 +38,11 @@ const menuItems: MenuItem[] = [
         group: "YÖNETİM",
         items: [
             { href: "/admin/clinics", label: "Klinik Yönetimi", icon: Hospital },
-             { href: "/admin/doctors", label: "Doktor Yönetimi", icon: Stethoscope,
-             subMenu: [
-                 { href: "/admin/doctors", label: "Doktor Yönetimi"},
-                 { href: "/admin/doctors/create-schedules", label: "Randevu Takvimi Oluştur" },
-             ]},
+            { href: "/admin/doctors", label: "Doktor Yönetimi", icon: Stethoscope,
+                subMenu: [
+                    { href: "/admin/doctors", label: "Doktor Yönetimi"},
+                    { href: "/admin/doctors/create-schedules", label: "Randevu Takvimi Oluştur" },
+                ]},
             {
                 href: "/admin/users",
                 label: "Kullanıcılar",
@@ -84,6 +86,7 @@ export function Sidebar() {
                             const isSubMenuOpen = openMenu === item.href;
 
                             if (item.subMenu) {
+                                // Alt menüsü olan öğeler (Değişiklik yok)
                                 return (
                                     <div key={item.href}>
                                         <button
@@ -98,12 +101,7 @@ export function Sidebar() {
                                                 <Icon className={cn("h-5 w-5", isParentActive && "text-green-600 dark:text-green-400")} />
                                                 <span>{item.label}</span>
                                             </div>
-                                            <ChevronDown
-                                                className={cn(
-                                                    "h-4 w-4 transition-transform duration-300",
-                                                    isSubMenuOpen && "rotate-180"
-                                                )}
-                                            />
+                                            <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isSubMenuOpen && "rotate-180")} />
                                         </button>
                                         <AnimatePresence>
                                             {isSubMenuOpen && (
@@ -118,15 +116,11 @@ export function Sidebar() {
                                                         {item.subMenu.map((subItem) => {
                                                             const isSubActive = pathname === subItem.href;
                                                             return (
-                                                                <Link
-                                                                    key={subItem.href}
-                                                                    href={subItem.href}
-                                                                    className={cn(
-                                                                        "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-                                                                        "transition-colors duration-200 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-800",
-                                                                        isSubActive ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "text-gray-600 dark:text-gray-400"
-                                                                    )}
-                                                                >
+                                                                <Link key={subItem.href} href={subItem.href} className={cn(
+                                                                    "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                                                                    "transition-colors duration-200 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-800",
+                                                                    isSubActive ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "text-gray-600 dark:text-gray-400"
+                                                                )}>
                                                                     <div className="h-1.5 w-1.5 rounded-full bg-current opacity-50 group-hover:opacity-100" />
                                                                     <span>{subItem.label}</span>
                                                                 </Link>
@@ -141,22 +135,28 @@ export function Sidebar() {
                             }
 
                             const isActive = pathname === item.href;
+
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     className={cn(
-                                        "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300",
+                                        "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
                                         "transition-colors duration-200 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-800",
-                                        isActive && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        isActive
+                                            ? (item.isEmergency
+                                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400")
+                                            : "text-gray-700 dark:text-gray-300"
                                     )}
                                 >
                                      <span className={cn(
-                                         "absolute left-0 h-6 w-1 scale-y-0 rounded-r-full bg-green-600",
+                                         "absolute left-0 h-6 w-1 scale-y-0 rounded-r-full",
                                          "transition-transform duration-200 ease-in-out group-hover:scale-y-100",
-                                         isActive && "scale-y-100"
+                                         isActive && "scale-y-100",
+                                         isActive && (item.isEmergency ? "bg-red-600" : "bg-green-600")
                                      )} />
-                                    <Icon className={cn("h-5 w-5", isActive && "text-green-600 dark:text-green-400")} />
+                                    <Icon className="h-5 w-5" />
                                     <span>{item.label}</span>
                                 </Link>
                             );
