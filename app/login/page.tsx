@@ -1,12 +1,11 @@
-// app/login/page.tsx
-
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { signIn } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,12 +25,9 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ShieldCheck, Stethoscope, Info } from "lucide-react";
+import {toast} from "sonner";
 
-// Auth.js'in client tarafı hook'u
-import { signIn } from "next-auth/react";
-
-
-// Form validasyon şeması (backend'deki LoginRequest ile uyumlu)
 const formSchema = z.object({
     nationalId: z
         .string()
@@ -46,6 +42,7 @@ export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loginType, setLoginType] = useState<'admin' | 'doctor'>('admin');
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -55,85 +52,155 @@ export default function LoginPage() {
         },
     });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    const handleLoginTypeChange = (type: 'admin' | 'doctor') => {
+        setLoginType(type);
         setError(null);
+        form.reset();
+    };
+
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
+
+        // Bu kontrol, buton devre dışı olsa bile bir güvenlik katmanı olarak kalır.
+        if (loginType === 'doctor') {
+            toast.info("Doktor girişi şu an aktif değildir.");
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
-            // Auth.js'in signIn fonksiyonunu çağırıyoruz
             const result = await signIn("credentials", {
                 nationalId: values.nationalId,
                 password: values.password,
-                redirect: false, // Sayfa yönlendirmesini biz yapacağız
+                redirect: false,
             });
 
             if (result?.error) {
-                // authorize fonksiyonu null dönerse burası çalışır.
-                setError("T.C. Kimlik Numarası veya şifre hatalı.");
+                toast.error("T.C. Kimlik Numarası veya şifre hatalı.");
                 console.error(result.error);
             } else if (result?.ok) {
-                // Giriş başarılı, panele yönlendir.
+                toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
                 router.push("/admin");
             }
         } catch (err) {
             console.error("Beklenmedik bir hata oluştu:", err);
-            setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+            toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
         } finally {
             setIsSubmitting(false);
         }
     }
 
     return (
-        <main className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-            <Card className="w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle className="text-2xl">Admin Paneli Giriş</CardTitle>
-                    <CardDescription>
-                        Lütfen yönetici hesabınızla giriş yapınız.
-                    </CardDescription>
-                </CardHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <CardContent className="grid gap-4">
-                            <FormField
-                                control={form.control}
-                                name="nationalId"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>T.C. Kimlik Numarası</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="11111111111" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Şifre</FormLabel>
-                                        <FormControl>
-                                            <Input type="password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </CardContent>
-                        <CardFooter className="flex flex-col">
-                            {error && (
-                                <div className="mb-4 text-sm font-medium text-red-600 bg-red-100 p-3 rounded-md w-full text-center">
-                                    {error}
-                                </div>
-                            )}
-                            <Button className="w-full" type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? "Giriş Yapılıyor..." : "Giriş Yap"}
+        <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-50 via-blue-100 to-cyan-100 dark:from-gray-900 dark:via-blue-900 dark:to-cyan-900 p-4">
+            <div className="w-full max-w-md">
+                <div className="text-center mb-8">
+                    <Stethoscope className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
+                    <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                        Klinik Yönetim Sistemi
+                    </h1>
+                </div>
+
+                <Card className="shadow-2xl rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0">
+                    <CardHeader>
+                        <div className="grid grid-cols-2 gap-2 mb-6">
+                            <Button
+                                variant={loginType === 'admin' ? 'default' : 'outline'}
+                                onClick={() => handleLoginTypeChange('admin')}
+                                className="rounded-lg transition-all"
+                            >
+                                <ShieldCheck className="mr-2 h-4 w-4" /> Admin Girişi
                             </Button>
-                        </CardFooter>
-                    </form>
-                </Form>
-            </Card>
+                            <Button
+                                variant={loginType === 'doctor' ? 'default' : 'outline'}
+                                onClick={() => handleLoginTypeChange('doctor')}
+                                className="rounded-lg transition-all"
+                            >
+                                <Stethoscope className="mr-2 h-4 w-4" /> Doktor Girişi
+                            </Button>
+                        </div>
+                        <CardTitle className="text-2xl text-center font-semibold text-gray-800 dark:text-gray-200">
+                            {loginType === 'admin' ? "Admin Paneli Giriş" : "Doktor Paneli Giriş"}
+                        </CardTitle>
+                        <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+                            {loginType === 'admin'
+                                ? "Lütfen yönetici hesabınızla giriş yapınız."
+                                : "Bu özellik yakında kullanıma sunulacaktır."}
+                        </CardDescription>
+                    </CardHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                            <CardContent className="p-6 grid gap-5 min-h-[210px]">
+                                {loginType === 'admin' ? (
+                                    <>
+                                        <FormField
+                                            control={form.control}
+                                            name="nationalId"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>T.C. Kimlik Numarası</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="TC Kimlik Numarası"
+                                                            {...field}
+                                                            className="bg-white/50 dark:bg-gray-700/50"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Şifre</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="******"
+                                                            type="password"
+                                                            {...field}
+                                                            className="bg-white/50 dark:bg-gray-700/50"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg h-full">
+                                        <Info className="w-10 h-10 text-blue-500 mb-3" />
+                                        <p className="font-medium text-blue-800 dark:text-blue-200">
+                                            Doktor girişi paneli şu anda geliştirme aşamasındadır.
+                                        </p>
+                                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                                            Anlayışınız için teşekkür ederiz.
+                                        </p>
+                                    </div>
+                                )}
+                            </CardContent>
+                            <CardFooter className="p-6 pt-2 flex flex-col gap-4">
+                                {error && loginType === 'admin' && (
+                                    <div className="w-full text-sm font-medium text-center text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 p-3 rounded-lg">
+                                        {error}
+                                    </div>
+                                )}
+                                <Button
+                                    className="w-full text-sm py-6 rounded-lg font-bold transition-all hover:scale-102 active:scale-100"
+                                    type="submit"
+                                    disabled={isSubmitting || loginType === 'doctor'}
+                                >
+                                    {isSubmitting ? "Giriş Yapılıyor..." : "Giriş Yap"}
+                                </Button>
+                            </CardFooter>
+                        </form>
+                    </Form>
+                </Card>
+                <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+                    © {new Date().getFullYear()} Klinik Yönetim Sistemi. Tüm hakları saklıdır.
+                </p>
+            </div>
         </main>
     );
 }
