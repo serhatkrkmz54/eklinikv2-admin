@@ -1,25 +1,46 @@
 'use client';
 
 import { ArrowRight, CalendarCheck, Clock, Users } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMyProfile } from "@/hooks/doctor/useProfileService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardCalendar } from "@/components/mycomp/layout/doctor/dashboard/DashboardCalendar";
+// --- DEĞİŞİKLİK 1: Gerekli hook ve format import edildi ---
+import { AppointmentStatus, useDoctorAppointments, useUpcomingAppointments } from "@/hooks/doctor/useAppointmentService";
+import { format } from "date-fns";
 
 export default function DoctorDashboardPage() {
-    const { profile, isLoading } = useMyProfile();
+    // Mevcut hook'lar
+    const { profile, isLoading: isLoadingProfile } = useMyProfile();
+    const { upcomingAppointments, isLoading: isLoadingAppointments } = useUpcomingAppointments();
 
-    // Örnek Yaklaşan Randevu Verisi
-    const upcomingAppointments = [
-        { id: 1, name: 'Ayşe Yılmaz', time: '10:30', reason: 'Kontrol', avatar: '/avatars/01.png', status: 'Onaylandı' },
-        { id: 2, name: 'Mehmet Öztürk', time: '11:00', reason: 'Diş Ağrısı', avatar: '/avatars/02.png', status: 'Onaylandı' },
-        { id: 3, name: 'Fatma Kaya', time: '12:15', reason: 'Yeni Hasta', avatar: '/avatars/03.png', status: 'Beklemede' },
-    ];
+    // --- DEĞİŞİKLİK 2: Bugünkü randevuları çekmek için hook çağrısı ---
+    const todayString = format(new Date(), 'yyyy-MM-dd');
+    const { appointments: todayAppointments, isLoading: isLoadingToday } = useDoctorAppointments(todayString);
 
-    if (isLoading) {
+    // --- DEĞİŞİKLİK 3: Bugünkü randevu sayılarını hesaplama ---
+    const totalTodayCount = todayAppointments?.length || 0;
+    const completedTodayCount = todayAppointments?.filter(app => app.status === 'COMPLETED').length || 0;
+
+
+    const getStatusProps = (status: AppointmentStatus) => {
+        switch (status) {
+            case 'SCHEDULED':
+                return { text: 'Onaylandı', variant: 'default' as const };
+            case 'CANCELLED':
+                return { text: 'İptal Edildi', variant: 'destructive' as const };
+            case 'COMPLETED':
+                return { text: 'Tamamlandı', variant: 'secondary' as const };
+            default:
+                return { text: 'Bilinmiyor', variant: 'outline' as const };
+        }
+    };
+
+    // --- DEĞİŞİKLİK 4: Yüklenme durumuna yeni hook'u ekleme ---
+    if (isLoadingProfile || isLoadingAppointments || isLoadingToday) {
         return <DashboardSkeleton />;
     }
 
@@ -39,7 +60,7 @@ export default function DoctorDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Sol Taraf: Ana İçerik */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Geliştirilmiş Bilgi Kartları */}
+                    {/* Bilgi Kartları */}
                     <div className="grid gap-6 md:grid-cols-2">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -49,8 +70,9 @@ export default function DoctorDashboardPage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">12</div>
-                                <p className="text-xs text-muted-foreground">3 tanesi tamamlandı</p>
+                                {/* --- DEĞİŞİKLİK 5: Statik verileri dinamik verilerle değiştirme --- */}
+                                <div className="text-2xl font-bold">{totalTodayCount}</div>
+                                <p className="text-xs text-muted-foreground">{completedTodayCount} tanesi tamamlandı</p>
                             </CardContent>
                         </Card>
                         <Card>
@@ -67,38 +89,38 @@ export default function DoctorDashboardPage() {
                         </Card>
                     </div>
 
-                    {/* Geliştirilmiş Yaklaşan Randevular Kartı */}
+                    {/* Yaklaşan Randevular Kartı (Bu kısım aynı kalıyor) */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Yaklaşan Randevular</CardTitle>
                             <CardDescription>Bugün sizi bekleyen hastalarınız.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {upcomingAppointments.map((appointment) => (
-                                <div key={appointment.id} className="flex items-center space-x-4 p-2 hover:bg-muted/50 rounded-lg transition-colors">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarImage src={appointment.avatar} alt="Avatar" />
-                                        <AvatarFallback>{appointment.name.substring(0, 2)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium leading-none">{appointment.name}</p>
-                                        <p className="text-sm text-muted-foreground">{appointment.reason}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Clock className="h-4 w-4" />
-                                        <span>{appointment.time}</span>
-                                    </div>
-                                    <Badge variant={appointment.status === 'Onaylandı' ? 'default' : 'secondary'}>
-                                        {appointment.status}
-                                    </Badge>
-                                </div>
-                            ))}
+                            {upcomingAppointments && upcomingAppointments.length > 0 ? (
+                                upcomingAppointments.map((appointment) => {
+                                    const statusProps = getStatusProps(appointment.status);
+                                    return (
+                                        <div key={appointment.appointmentId} className="flex items-center space-x-4 p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                                            <Avatar className="h-9 w-9">
+                                                <AvatarFallback>{appointment.patientFullName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium leading-none">{appointment.patientFullName}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Clock className="h-4 w-4" />
+                                                <span>{format(new Date(appointment.appointmentTime), 'HH:mm')}</span>
+                                            </div>
+                                            <Badge variant={statusProps.variant}>
+                                                {statusProps.text}
+                                            </Badge>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center">Yaklaşan randevunuz bulunmamaktadır.</p>
+                            )}
                         </CardContent>
-                        <CardFooter>
-                            <Button variant="outline" className="w-full">
-                                Tüm Randevuları Görüntüle <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </div>
 
@@ -111,7 +133,7 @@ export default function DoctorDashboardPage() {
     );
 }
 
-// --- TASARIMA UYGUN YENİ İSKELET EKRANI ---
+// İskelet Ekranı (Değişiklik yok)
 const DashboardSkeleton = () => (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="space-y-2">

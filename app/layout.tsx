@@ -4,6 +4,8 @@ import "./globals.css";
 import React from "react";
 import {Providers} from "@/app/providers";
 import {Toaster} from "@/components/ui/sonner";
+import {WebSocketProvider} from "@/lib/WebSocketProvider";
+import {NotificationProvider} from "@/context/NotificationContext";
 
 const ubuntu = Ubuntu({
     variable: '--font-ubuntu',
@@ -26,7 +28,12 @@ export default function RootLayout({
       <body
         className={`${ubuntu.className} antialiased`}
       >
-      <Providers>{children}
+      <Providers>
+          <NotificationProvider>
+          <WebSocketProvider>
+              {children}
+          </WebSocketProvider>
+          </NotificationProvider>
           <Toaster position="top-right" richColors />
       </Providers>
       </body>

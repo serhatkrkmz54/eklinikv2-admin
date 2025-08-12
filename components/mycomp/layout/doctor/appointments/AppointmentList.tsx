@@ -1,12 +1,13 @@
 'use client';
 
-import { useDoctorAppointments } from '@/hooks/doctor/useAppointmentService';
+import { useDoctorAppointments,useDoctorMonthlySchedule  } from '@/hooks/doctor/useAppointmentService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import {useState} from "react";
 
 interface AppointmentListProps {
     selectedDate: Date;
@@ -18,6 +19,10 @@ interface AppointmentListProps {
 export function AppointmentList({ selectedDate, onDateChange, selectedAppointmentId, onAppointmentSelect }: AppointmentListProps) {
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     const { appointments, isLoading, isError } = useDoctorAppointments(formattedDate);
+    const [currentMonth, setCurrentMonth] = useState(selectedDate);
+
+    const { appointmentDates } = useDoctorMonthlySchedule(currentMonth);
+
 
     return (
         <Card className="shadow-lg">
@@ -30,12 +35,20 @@ export function AppointmentList({ selectedDate, onDateChange, selectedAppointmen
                     selected={selectedDate}
                     onSelect={(date) => date && onDateChange(date)}
                     className="rounded-md border p-4"
+                    locale={tr}
+                    month={currentMonth}
+                    onMonthChange={setCurrentMonth}
+                    modifiers={{
+                        hasAppointment: appointmentDates,
+                    }}
+                    modifiersClassNames={{
+                        hasAppointment: 'rounded-md !bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600',
+                    }}
                     classNames={{
                         day: "mx-3 my-1",
                         cell: "p-0",
                         table: "border-separate border-spacing-x-2 border-spacing-y-2"
                     }}
-                    locale={tr}
                 />
                 <div className="mt-4 space-y-2">
                     <h3 className="font-semibold text-lg">{format(selectedDate, 'd MMMM yyyy', { locale: tr })}</h3>

@@ -5,6 +5,7 @@ import useSWRMutation from 'swr/mutation';
 import { apiClient, fetcher } from '@/lib/axios';
 import { toast } from 'sonner';
 import { UserProfileResponse } from './useProfileService';
+import { format } from 'date-fns';
 
 export interface AppointmentForDoctor {
     appointmentId: number;
@@ -52,6 +53,16 @@ export interface CompleteAppointmentRequest {
     prescriptions?: PrescriptionRequest[];
 }
 
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+
+
+export interface UpcomingAppointment {
+    appointmentId: number;
+    patientFullName: string;
+    appointmentTime: string; // ISO String
+    status: AppointmentStatus;
+}
+
 // --- API FUNCTIONS ---
 
 async function completeAppointment(url: string, { arg }: { arg: CompleteAppointmentRequest }) {
@@ -97,5 +108,34 @@ export function useCompleteAppointment(appointmentId: number | null) {
     return {
         completeAppointment: handleComplete,
         isCompleting: isMutating,
+    };
+
+}
+
+export function useDoctorMonthlySchedule(month: Date | null) {
+    const monthString = month ? format(month, 'yyyy-MM-dd') : null;
+    const { data, error, isLoading } = useSWR<string[]>(
+        monthString ? ['/api/doctor/appointments/monthly-overview', monthString] : null,
+        ([url, month]) => apiClient.get(url, { params: { month } }).then(res => res.data)
+    );
+
+    return {
+        appointmentDates: data?.map(dateStr => new Date(dateStr)) || [],
+        isLoading,
+        isError: error,
+    };
+}
+
+export function useUpcomingAppointments() {
+    const { data, error, isLoading } = useSWR<UpcomingAppointment[]>(
+        '/api/doctor/appointments/upcoming',
+        fetcher,
+        { refreshInterval: 60000 }
+    );
+
+    return {
+        upcomingAppointments: data,
+        isLoading,
+        isError: error,
     };
 }

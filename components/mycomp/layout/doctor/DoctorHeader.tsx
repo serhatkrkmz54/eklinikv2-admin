@@ -1,25 +1,32 @@
 'use client';
 
 import Link from "next/link";
-import { CircleUser, Menu, Search, Bell } from "lucide-react";
+// DEĞİŞİKLİK 1: Search ikonu yerine Hospital ikonu import edildi.
+import { CircleUser, Menu, Hospital, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+// Input artık kullanılmadığı için kaldırılabilir, ama projenin başka bir yerinde kullanılıyorsa kalabilir.
+// import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DoctorSidebar } from "./DoctorSidebar"; // Mobil menü için
+import { DoctorSidebar } from "./DoctorSidebar";
 import { useMyProfile } from "@/hooks/doctor/useProfileService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { signOut } from "next-auth/react";
+import {useNotification} from "@/context/NotificationContext";
+import { formatRelative } from "date-fns";
+import {tr} from "date-fns/locale";
 
 export function DoctorHeader() {
     const { profile, isLoading } = useMyProfile();
+    const { notifications, unreadCount, markAllAsRead } = useNotification();
 
     return (
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
@@ -34,22 +41,65 @@ export function DoctorHeader() {
                     <DoctorSidebar />
                 </SheetContent>
             </Sheet>
+
+            {/* DEĞİŞİKLİK 2: Arama formu tamamen kaldırıldı ve yerine poliklinik bilgisi geldi. */}
             <div className="w-full flex-1">
-                <form>
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Hasta, rapor veya mesaj ara..."
-                            className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                        />
+                {isLoading ? (
+                    // Veri yüklenirken iskelet (skeleton) gösterilir
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-6 w-[200px]" />
                     </div>
-                </form>
+                ) : (
+                    // Veri yüklendiğinde poliklinik adı ve ikonu gösterilir
+                    <div className="flex items-center gap-3">
+                        <Hospital className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-md font-semibold text-foreground">
+                            {/* Verinin null/undefined olma ihtimaline karşı optional chaining (?) kullanılır */}
+                            {profile?.doctorInfo?.clinicName || 'Poliklinik Bilgisi Yok'} Servisi
+                        </span>
+                    </div>
+                )}
             </div>
-            <Button variant="ghost" size="icon" className="rounded-full">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Bildirimler</span>
-            </Button>
+
+            <DropdownMenu onOpenChange={(open) => {
+                // Menü açıldığında tüm bildirimleri okundu olarak işaretle
+                if (open) {
+                    markAllAsRead();
+                }
+            }}>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full relative">
+                        <Bell className="h-5 w-5" />
+                        {/* Okunmamış bildirim varsa kırmızı nokta göster */}
+                        {unreadCount > 0 && (
+                            <span className="absolute top-1 right-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                        )}
+                        <span className="sr-only">Bildirimler</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[350px]">
+                    <DropdownMenuLabel>Bildirimler ({unreadCount} yeni)</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        {notifications.length > 0 ? (
+                            notifications.slice(0, 5).map(notification => ( // Son 5 bildirimi göster
+                                <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
+                                    <p className="font-semibold">{notification.title}</p>
+                                    <p className="text-sm text-muted-foreground">{notification.description}</p>
+                                    <p className="text-xs text-muted-foreground self-end">
+                                        {formatRelative(notification.date, new Date(), { locale: tr })}
+                                    </p>
+                                </DropdownMenuItem>
+                            ))
+                        ) : (
+                            <DropdownMenuItem disabled>Yeni bildirim yok.</DropdownMenuItem>
+                        )}
+                    </DropdownMenuGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="secondary" size="icon" className="rounded-full">
