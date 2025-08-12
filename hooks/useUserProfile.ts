@@ -15,7 +15,7 @@ export interface UserResponse {
 }
 
 export interface PatientProfileResponse {
-    dateOfBirth: string; // LocalDate -> string
+    dateOfBirth: string;
     weight: number;
     height: number;
     hasChronicIllness: boolean;

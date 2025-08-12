@@ -1,28 +1,20 @@
 "use client";
 
 import DashboardCard from "@/components/mycomp/dashboard/DashboardCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import {Building2, CalendarDays, Stethoscope, Users} from "lucide-react";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
-    Users,
-    Stethoscope,
-    CalendarDays,
-    Building2,
-    PieChart
-} from "lucide-react";
-import { useClinicCount, useDoctorCount, usePatientCount, useUpcomingAppointments } from "@/hooks/useDashboardStats";
-import { useDailyAppointmentCount, useMonthlyNewPatientStats } from "@/hooks/useDashboardStats";
-import { MonthlyNewPatientsChart } from "@/components/mycomp/dashboard/MonthlyNewPatientsChart";
+    useClinicCount,
+    useDailyAppointmentCount,
+    useDoctorCount,
+    usePatientCount,
+    useUpcomingAppointments
+} from "@/hooks/useDashboardStats";
+import {MonthlyNewPatientsChart} from "@/components/mycomp/dashboard/MonthlyNewPatientsChart";
 import {ClinicDensityChart} from "@/components/mycomp/dashboard/ClinicDensityChart";
-import { format, parseISO } from 'date-fns';
+import {format, parseISO} from 'date-fns';
 
 export default function AdminDashboardPage() {
     const { count: clinicCount, isLoading: isClinicLoading } = useClinicCount();

@@ -119,3 +119,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.rdp-spacing-fix {
+  border-collapse: separate !important;
+}
+
+.rdp-day-spacing {
+  margin: 0 6px; /* soldan ve sağdan 6px boşluk */
+}
