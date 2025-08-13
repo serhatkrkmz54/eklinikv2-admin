@@ -32,6 +32,7 @@ export default function DoctorAppointmentsPage() {
                     <AppointmentDetailView
                         appointmentId={selectedAppointmentId}
                         onAppointmentComplete={() => setSelectedAppointmentId(null)}
+                        onSelectAppointment={setSelectedAppointmentId}
                     />
                 </div>
             </div>

@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 export interface AppointmentForDoctor {
     appointmentId: number;
     appointmentTime: string;
-    status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+    status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'MISSED';
     patientInfo: UserProfileResponse;
 }
 
@@ -21,6 +21,7 @@ export interface PatientHistoryItem {
 }
 
 export interface PatientDetails {
+    id: number;
     firstName: string;
     lastName: string;
     email: string;
@@ -34,11 +35,24 @@ export interface PatientDetails {
     history: PatientHistoryItem[];
 }
 
+export interface PrescriptionResponse {
+    medicationName: string;
+    dosage: string;
+    duration: string;
+}
+
+export interface MedicalRecordResponse {
+    diagnosis: string;
+    notes?: string;
+    prescriptions?: PrescriptionResponse[];
+}
+
 export interface AppointmentDetailResponse {
     appointmentId: number;
     appointmentTime: string;
-    status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+    status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'MISSED';
     patientDetails: PatientDetails;
+    medicalRecord?: MedicalRecordResponse;
 }
 
 export interface PrescriptionRequest {
@@ -53,7 +67,7 @@ export interface CompleteAppointmentRequest {
     prescriptions?: PrescriptionRequest[];
 }
 
-export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'MISSED';
 
 
 export interface UpcomingAppointment {
@@ -138,4 +152,12 @@ export function useUpcomingAppointments() {
         isLoading,
         isError: error,
     };
+}
+
+export function usePatientHistory(patientId: number | null) {
+    const { data, error, isLoading } = useSWR<PatientHistoryItem[]>(
+        patientId ? `/api/doctor/patients/${patientId}/history` : null,
+        fetcher
+    );
+    return { history: data, isLoadingHistory: isLoading, isErrorHistory: error };
 }

@@ -1,8 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-// Tek bir bildirimin nasıl görüneceğini tanımlayan tip
 export interface Notification {
     id: string;
     title: string;
@@ -11,7 +10,6 @@ export interface Notification {
     isRead: boolean;
 }
 
-// Context'in state'i ve fonksiyonları
 interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
@@ -21,24 +19,49 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const NOTIFICATION_STORAGE_KEY = 'eKlinik-notifications';
+
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    useEffect(() => {
+        try {
+            const storedItems = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+            if (storedItems) {
+                const parsedItems = JSON.parse(storedItems).map((item: any) => ({
+                    ...item,
+                    date: new Date(item.date),
+                }));
+                setNotifications(parsedItems);
+            }
+        } catch (error) {
+            console.error("Failed to load notifications from localStorage", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications));
+        } catch (error) {
+            console.error("Failed to save notifications to localStorage", error);
+        }
+    }, [notifications]);
+
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const addNotification = (notificationData: Omit<Notification, 'id' | 'date' | 'isRead'>) => {
         const newNotification: Notification = {
             ...notificationData,
-            id: new Date().toISOString() + Math.random(), // Basit bir unique ID
+            id: new Date().toISOString() + Math.random(),
             date: new Date(),
             isRead: false,
         };
-        // Yeni bildirim listenin başına eklenir
         setNotifications(prev => [newNotification, ...prev]);
     };
 
     const markAllAsRead = () => {
         setNotifications(prev =>
-            prev.map(n => ({ ...n, isRead: true }))
+            prev.map(n => (n.isRead ? n : { ...n, isRead: true }))
         );
     };
 
@@ -56,7 +79,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// Hook'u export ediyoruz
 export const useNotification = () => {
     const context = useContext(NotificationContext);
     if (context === undefined) {

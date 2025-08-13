@@ -1,30 +1,29 @@
 'use client';
 
-import { ArrowRight, CalendarCheck, Clock, Users } from "lucide-react";
+import { CalendarCheck, Clock, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMyProfile } from "@/hooks/doctor/useProfileService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardCalendar } from "@/components/mycomp/layout/doctor/dashboard/DashboardCalendar";
-// --- DEĞİŞİKLİK 1: Gerekli hook ve format import edildi ---
 import { AppointmentStatus, useDoctorAppointments, useUpcomingAppointments } from "@/hooks/doctor/useAppointmentService";
 import { format } from "date-fns";
+import React from "react";
 
 export default function DoctorDashboardPage() {
-    // Mevcut hook'lar
     const { profile, isLoading: isLoadingProfile } = useMyProfile();
     const { upcomingAppointments, isLoading: isLoadingAppointments } = useUpcomingAppointments();
 
-    // --- DEĞİŞİKLİK 2: Bugünkü randevuları çekmek için hook çağrısı ---
     const todayString = format(new Date(), 'yyyy-MM-dd');
     const { appointments: todayAppointments, isLoading: isLoadingToday } = useDoctorAppointments(todayString);
 
-    // --- DEĞİŞİKLİK 3: Bugünkü randevu sayılarını hesaplama ---
-    const totalTodayCount = todayAppointments?.length || 0;
+    const scheduledTodayCount = todayAppointments?.filter(app => app.status === 'SCHEDULED').length || 0;
     const completedTodayCount = todayAppointments?.filter(app => app.status === 'COMPLETED').length || 0;
+    const cancelledTodayCount = todayAppointments?.filter(app => app.status === 'CANCELLED').length || 0;
+    const missedTodayCount = todayAppointments?.filter(app => app.status === 'MISSED').length || 0;
 
+    const mainDisplayCount = scheduledTodayCount;
 
     const getStatusProps = (status: AppointmentStatus) => {
         switch (status) {
@@ -34,12 +33,13 @@ export default function DoctorDashboardPage() {
                 return { text: 'İptal Edildi', variant: 'destructive' as const };
             case 'COMPLETED':
                 return { text: 'Tamamlandı', variant: 'secondary' as const };
+            case 'MISSED':
+                return { text: 'Kaçırıldı', variant: 'outline' as const };
             default:
                 return { text: 'Bilinmiyor', variant: 'outline' as const };
         }
     };
 
-    // --- DEĞİŞİKLİK 4: Yüklenme durumuna yeni hook'u ekleme ---
     if (isLoadingProfile || isLoadingAppointments || isLoadingToday) {
         return <DashboardSkeleton />;
     }
@@ -64,15 +64,17 @@ export default function DoctorDashboardPage() {
                     <div className="grid gap-6 md:grid-cols-2">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Bugünkü Randevular</CardTitle>
+                                <CardTitle className="text-sm font-medium">Bekleyen Randevu Sayısı</CardTitle>
                                 <div className="p-2 bg-primary/10 rounded-md">
                                     <CalendarCheck className="h-5 w-5 text-primary" />
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                {/* --- DEĞİŞİKLİK 5: Statik verileri dinamik verilerle değiştirme --- */}
-                                <div className="text-2xl font-bold">{totalTodayCount}</div>
-                                <p className="text-xs text-muted-foreground">{completedTodayCount} tanesi tamamlandı</p>
+                                <div className="text-2xl font-bold">{mainDisplayCount}</div>
+                                {/* KART İÇERİĞİ GÜNCELLENDİ */}
+                                <p className="text-xs text-muted-foreground">
+                                    {completedTodayCount} tamamlandı, {missedTodayCount} kaçırıldı, {cancelledTodayCount} iptal
+                                </p>
                             </CardContent>
                         </Card>
                         <Card>
@@ -89,7 +91,7 @@ export default function DoctorDashboardPage() {
                         </Card>
                     </div>
 
-                    {/* Yaklaşan Randevular Kartı (Bu kısım aynı kalıyor) */}
+                    {/* Yaklaşan Randevular Kartı */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Yaklaşan Randevular</CardTitle>

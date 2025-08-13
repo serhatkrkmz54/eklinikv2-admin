@@ -1,6 +1,6 @@
 'use client';
 
-import { useDoctorAppointments,useDoctorMonthlySchedule  } from '@/hooks/doctor/useAppointmentService';
+import { useDoctorAppointments,useDoctorMonthlySchedule, AppointmentStatus  } from '@/hooks/doctor/useAppointmentService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +15,22 @@ interface AppointmentListProps {
     selectedAppointmentId: number | null;
     onAppointmentSelect: (id: number | null) => void;
 }
+
+// --- YENİ EKLENDİ: Durumları Türkçeye çeviren fonksiyon ---
+const translateStatus = (status: AppointmentStatus) => {
+    switch (status) {
+        case 'SCHEDULED':
+            return 'Planlanmış';
+        case 'COMPLETED':
+            return 'Tamamlandı';
+        case 'CANCELLED':
+            return 'İptal Edildi';
+        case 'MISSED':
+            return 'Randevuya Gelmedi';
+        default:
+            return status;
+    }
+};
 
 export function AppointmentList({ selectedDate, onDateChange, selectedAppointmentId, onAppointmentSelect }: AppointmentListProps) {
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -74,7 +90,8 @@ export function AppointmentList({ selectedDate, onDateChange, selectedAppointmen
                             >
                                 <p className="font-semibold">{apt.patientInfo.firstName} {apt.patientInfo.lastName}</p>
                                 <p className={cn("text-sm", selectedAppointmentId === apt.appointmentId ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                                    {format(parseISO(apt.appointmentTime), 'HH:mm')} - {apt.status}
+                                    {/* --- DEĞİŞİKLİK BURADA: Çeviri fonksiyonu kullanıldı --- */}
+                                    {format(parseISO(apt.appointmentTime), 'HH:mm')} - {translateStatus(apt.status)}
                                 </p>
                             </button>
                         ))

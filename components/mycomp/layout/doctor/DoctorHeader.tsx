@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-// DEĞİŞİKLİK 1: Search ikonu yerine Hospital ikonu import edildi.
 import { CircleUser, Menu, Hospital, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +12,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// Input artık kullanılmadığı için kaldırılabilir, ama projenin başka bir yerinde kullanılıyorsa kalabilir.
-// import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DoctorSidebar } from "./DoctorSidebar";
 import { useMyProfile } from "@/hooks/doctor/useProfileService";
@@ -42,19 +39,15 @@ export function DoctorHeader() {
                 </SheetContent>
             </Sheet>
 
-            {/* DEĞİŞİKLİK 2: Arama formu tamamen kaldırıldı ve yerine poliklinik bilgisi geldi. */}
             <div className="w-full flex-1">
                 {isLoading ? (
-                    // Veri yüklenirken iskelet (skeleton) gösterilir
                     <div className="flex items-center gap-3">
                         <Skeleton className="h-6 w-[200px]" />
                     </div>
                 ) : (
-                    // Veri yüklendiğinde poliklinik adı ve ikonu gösterilir
                     <div className="flex items-center gap-3">
                         <Hospital className="h-5 w-5 text-muted-foreground" />
                         <span className="text-md font-semibold text-foreground">
-                            {/* Verinin null/undefined olma ihtimaline karşı optional chaining (?) kullanılır */}
                             {profile?.doctorInfo?.clinicName || 'Poliklinik Bilgisi Yok'} Servisi
                         </span>
                     </div>
@@ -62,15 +55,13 @@ export function DoctorHeader() {
             </div>
 
             <DropdownMenu onOpenChange={(open) => {
-                // Menü açıldığında tüm bildirimleri okundu olarak işaretle
-                if (open) {
+                if (!open) {
                     markAllAsRead();
                 }
             }}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full relative">
                         <Bell className="h-5 w-5" />
-                        {/* Okunmamış bildirim varsa kırmızı nokta göster */}
                         {unreadCount > 0 && (
                             <span className="absolute top-1 right-1 flex h-3 w-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
